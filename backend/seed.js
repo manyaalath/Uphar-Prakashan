@@ -1,9 +1,10 @@
-const bcrypt = require('bcrypt');
-const { db, initDB } = require('./db');
+const bcrypt = require('bcryptjs');
+const { db, initDB, saveDatabase } = require('./db');
 
 async function seed() {
     // Initialize database first
-    initDB();
+    await db.init();
+    await initDB();
 
     console.log('Starting database seed...');
 
@@ -292,6 +293,10 @@ async function seed() {
     }
 
     console.log(`✓ ${books.length} sample books created`);
+
+    // Save database to disk
+    saveDatabase();
+
     console.log('\n✅ Database seeding completed successfully!');
     console.log('\nDefault credentials:');
     console.log('  Admin: username = admin, password = admin123');
