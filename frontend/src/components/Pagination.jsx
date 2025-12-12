@@ -1,4 +1,5 @@
 import { useI18n } from '../i18n';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function Pagination({ currentPage, totalPages, onPageChange }) {
     const { t } = useI18n();
@@ -24,20 +25,21 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
             <button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                aria-label={t('previous')}
             >
-                {t('previous')}
+                <ChevronLeft className="w-5 h-5" />
             </button>
 
             {startPage > 1 && (
                 <>
                     <button
                         onClick={() => onPageChange(1)}
-                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        className="w-10 h-10 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium"
                     >
                         1
                     </button>
-                    {startPage > 2 && <span className="px-2">...</span>}
+                    {startPage > 2 && <span className="px-2 text-gray-500">...</span>}
                 </>
             )}
 
@@ -45,9 +47,9 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
                 <button
                     key={page}
                     onClick={() => onPageChange(page)}
-                    className={`px-4 py-2 border rounded-lg transition-colors ${page === currentPage
-                            ? 'bg-primary-600 text-white border-primary-600'
-                            : 'border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors font-medium ${page === currentPage
+                            ? 'bg-deep-red text-white border border-deep-red'
+                            : 'border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
                         }`}
                 >
                     {page}
@@ -56,10 +58,10 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
 
             {endPage < totalPages && (
                 <>
-                    {endPage < totalPages - 1 && <span className="px-2">...</span>}
+                    {endPage < totalPages - 1 && <span className="px-2 text-gray-500">...</span>}
                     <button
                         onClick={() => onPageChange(totalPages)}
-                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        className="w-10 h-10 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium"
                     >
                         {totalPages}
                     </button>
@@ -69,9 +71,10 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
             <button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                aria-label={t('next')}
             >
-                {t('next')}
+                <ChevronRight className="w-5 h-5" />
             </button>
         </div>
     );

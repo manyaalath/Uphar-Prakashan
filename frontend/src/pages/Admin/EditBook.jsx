@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useI18n } from '../../i18n';
 import { useAuthStore } from '../../store/authStore';
+import AdminLayout from '../../components/Admin/AdminLayout';
+import BookForm from '../../components/Admin/BookForm';
+import { ArrowLeft } from 'lucide-react';
 
 export default function EditBook() {
     const { id } = useParams();
@@ -10,23 +13,8 @@ export default function EditBook() {
     const navigate = useNavigate();
     const { token } = useAuthStore();
     const [loading, setLoading] = useState(false);
-    const [fetchLoading, setFetchLoading] = useState(true);
-    const [formData, setFormData] = useState({
-        slug: '',
-        title_hi: '',
-        title_en: '',
-        short_hi: '',
-        short_en: '',
-        description_hi: '',
-        description_en: '',
-        price: '',
-        ex_tax: '',
-        category: 'education',
-        tags: '',
-        language: 'both',
-        stock: '',
-        cover_url: ''
-    });
+    const [initialData, setInitialData] = useState(null);
+    const [fetchError, setFetchError] = useState('');
 
     useEffect(() => {
         fetchBook();
@@ -35,49 +23,30 @@ export default function EditBook() {
     const fetchBook = async () => {
         try {
             const res = await axios.get(`/api/v1/books/${id}`);
-            const book = res.data.book;
-            setFormData({
-                slug: book.slug,
-                title_hi: book.title_hi,
-                title_en: book.title_en,
-                short_hi: book.short_hi || '',
-                short_en: book.short_en || '',
-                description_hi: book.description_hi || '',
-                description_en: book.description_en || '',
-                price: book.price,
-                ex_tax: book.ex_tax || '',
-                category: book.category,
-                tags: Array.isArray(book.tags) ? book.tags.join(', ') : '',
-                language: book.language,
-                stock: book.stock,
-                cover_url: book.cover_url || ''
-            });
+            setInitialData(res.data.book);
         } catch (error) {
             console.error('Error fetching book:', error);
-            alert(t('error'));
-        } finally {
-            setFetchLoading(false);
+            setFetchError('Book not found');
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (formData) => {
         setLoading(true);
-
         try {
             const bookData = {
                 ...formData,
                 price: parseFloat(formData.price),
                 ex_tax: formData.ex_tax ? parseFloat(formData.ex_tax) : null,
                 stock: parseInt(formData.stock),
-                tags: formData.tags.split(',').map(t => t.trim()).filter(t => t)
+                tags: typeof formData.tags === 'string'
+                    ? formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+                    : formData.tags
             };
 
             await axios.put(`/api/v1/admin/books/${id}`, bookData, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            alert(t('book_updated'));
             navigate('/admin/dashboard');
         } catch (error) {
             console.error('Error updating book:', error);
@@ -87,116 +56,45 @@ export default function EditBook() {
         }
     };
 
-    if (fetchLoading) {
+    if (fetchError) {
         return (
-            <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-                <p>{t('loading')}</p>
-            </div>
+            <AdminLayout>
+                <div className="text-center py-12">
+                    <h2 className="text-xl font-bold text-red-600 mb-4">{fetchError}</h2>
+                    <Link to="/admin/dashboard" className="btn-secondary">
+                        Back to Dashboard
+                    </Link>
+                </div>
+            </AdminLayout>
+        );
+    }
+
+    if (!initialData) {
+        return (
+            <AdminLayout>
+                <div className="flex justify-center p-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-royal-blue"></div>
+                </div>
+            </AdminLayout>
         );
     }
 
     return (
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h1 className="text-3xl font-bold mb-8">{t('edit_book')}</h1>
+        <AdminLayout>
+            <div className="mb-8">
+                <Link to="/admin/dashboard" className="inline-flex items-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 mb-4 transition-colors">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Dashboard
+                </Link>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('edit_book')}</h1>
+            </div>
 
-            <form onSubmit={handleSubmit} className="card card-body space-y-6">
-                {/* Same form fields as AddBook */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label className="block font-medium mb-2">{t('title')} (Hindi) *</label>
-                        <input
-                            type="text"
-                            required
-                            value={formData.title_hi}
-                            onChange={(e) => setFormData({ ...formData, title_hi: e.target.value })}
-                            className="input-field hindi-text"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block font-medium mb-2">{t('title')} (English) *</label>
-                        <input
-                            type="text"
-                            required
-                            value={formData.title_en}
-                            onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
-                            className="input-field"
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <label className="block font-medium mb-2">Slug *</label>
-                    <input
-                        type="text"
-                        required
-                        value={formData.slug}
-                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                        className="input-field"
-                    />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                        <label className="block font-medium mb-2">{t('price')} *</label>
-                        <input
-                            type="number"
-                            required
-                            min="0"
-                            step="0.01"
-                            value={formData.price}
-                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                            className="input-field"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block font-medium mb-2">{t('stock')} *</label>
-                        <input
-                            type="number"
-                            required
-                            min="0"
-                            value={formData.stock}
-                            onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                            className="input-field"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block font-medium mb-2">{t('category')} *</label>
-                        <select
-                            required
-                            value={formData.category}
-                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                            className="input-field"
-                        >
-                            <option value="spiritual">{t('spiritual')}</option>
-                            <option value="fiction">{t('fiction')}</option>
-                            <option value="education">{t('education')}</option>
-                            <option value="children">{t('children')}</option>
-                            <option value="health">{t('health')}</option>
-                            <option value="self-help">{t('self-help')}</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div className="flex space-x-4">
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="btn-primary"
-                    >
-                        {loading ? t('loading') : t('update')}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => navigate('/admin/dashboard')}
-                        className="btn-secondary"
-                    >
-                        {t('cancel')}
-                    </button>
-                </div>
-            </form>
-        </div>
+            <BookForm
+                initialData={initialData}
+                onSubmit={handleSubmit}
+                loading={loading}
+                onCancel={() => navigate('/admin/dashboard')}
+            />
+        </AdminLayout>
     );
 }

@@ -2,17 +2,16 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { useI18n } from '../../i18n';
-import SearchBar from '../../components/SearchBar';
 import BookGrid from '../../components/BookGrid';
 import Pagination from '../../components/Pagination';
+import FiltersSidebar from '../../components/Filters/FiltersSidebar';
 
 export default function ProductList() {
-    const { t } = useI18n();
+    const { t, language } = useI18n();
     const [searchParams, setSearchParams] = useSearchParams();
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
-    const [categories, setCategories] = useState([]);
     const [filters, setFilters] = useState({
         search: searchParams.get('search') || '',
         category: searchParams.get('category') || '',
@@ -23,26 +22,24 @@ export default function ProductList() {
     });
 
     useEffect(() => {
-        fetchCategories();
-    }, []);
+        const params = new URLSearchParams(searchParams);
 
-    useEffect(() => {
-        fetchBooks();
+        // Update local filters state from URL
+        setFilters({
+            search: params.get('search') || '',
+            category: params.get('category') || '',
+            language: params.get('language') || '',
+            minPrice: params.get('minPrice') || '',
+            maxPrice: params.get('maxPrice') || '',
+            sort: params.get('sort') || ''
+        });
+
+        fetchBooks(params);
     }, [searchParams]);
 
-    const fetchCategories = async () => {
-        try {
-            const res = await axios.get('/api/v1/books/categories');
-            setCategories(res.data.categories);
-        } catch (error) {
-            console.error('Error fetching categories:', error);
-        }
-    };
-
-    const fetchBooks = async () => {
+    const fetchBooks = async (params) => {
         setLoading(true);
         try {
-            const params = new URLSearchParams(searchParams);
             const res = await axios.get(`/api/v1/books?${params.toString()}`);
             setBooks(res.data.books);
             setPagination(res.data.pagination);
@@ -53,15 +50,31 @@ export default function ProductList() {
         }
     };
 
-    const updateFilter = (key, value) => {
-        const newFilters = { ...filters, [key]: value };
+    const handleFilterChange = (newFilters) => {
         setFilters(newFilters);
-
         const params = new URLSearchParams();
         Object.keys(newFilters).forEach(k => {
             if (newFilters[k]) params.set(k, newFilters[k]);
         });
+        // Reset page to 1 when filters change
+        params.set('page', '1');
         setSearchParams(params);
+    };
+
+    const clearFilters = () => {
+        setFilters({
+            search: '',
+            category: '',
+            language: '',
+            minPrice: '',
+            maxPrice: '',
+            sort: ''
+        });
+        setSearchParams({});
+    };
+
+    const handleSortChange = (e) => {
+        handleFilterChange({ ...filters, sort: e.target.value });
     };
 
     const handlePageChange = (page) => {
@@ -72,71 +85,34 @@ export default function ProductList() {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h1 className="text-3xl font-bold mb-8">{t('books')}</h1>
+            <h1 className="text-3xl font-bold mb-8 text-[#1A1A1A] dark:text-white">{t('books')}</h1>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 {/* Filters Sidebar */}
                 <aside className="lg:col-span-1">
-                    <div className="card card-body sticky top-20">
-                        <h2 className="text-xl font-bold mb-4">{t('filter')}</h2>
+                    <FiltersSidebar
+                        filters={filters}
+                        onChange={handleFilterChange}
+                        onClear={clearFilters}
+                    />
+                </aside>
 
-                        {/* Category Filter */}
-                        <div className="mb-6">
-                            <label className="block font-medium mb-2">{t('category')}</label>
-                            <select
-                                value={filters.category}
-                                onChange={(e) => updateFilter('category', e.target.value)}
-                                className="input-field"
-                            >
-                                <option value="">{t('all_categories')}</option>
-                                {categories.map(cat => (
-                                    <option key={cat} value={cat}>{t(cat)}</option>
-                                ))}
-                            </select>
+                {/* Books Grid */}
+                <div className="lg:col-span-3">
+                    <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                        <div className="text-gray-600 dark:text-gray-400">
+                            {t('showing')} {books.length} {t('results')}
                         </div>
 
-                        {/* Language Filter */}
-                        <div className="mb-6">
-                            <label className="block font-medium mb-2">{t('language')}</label>
-                            <select
-                                value={filters.language}
-                                onChange={(e) => updateFilter('language', e.target.value)}
-                                className="input-field"
-                            >
-                                <option value="">{t('both')}</option>
-                                <option value="hindi">{t('hindi')}</option>
-                                <option value="english">{t('english')}</option>
-                            </select>
-                        </div>
-
-                        {/* Price Range */}
-                        <div className="mb-6">
-                            <label className="block font-medium mb-2">{t('price_range')}</label>
-                            <div className="flex space-x-2">
-                                <input
-                                    type="number"
-                                    placeholder="Min"
-                                    value={filters.minPrice}
-                                    onChange={(e) => updateFilter('minPrice', e.target.value)}
-                                    className="input-field"
-                                />
-                                <input
-                                    type="number"
-                                    placeholder="Max"
-                                    value={filters.maxPrice}
-                                    onChange={(e) => updateFilter('maxPrice', e.target.value)}
-                                    className="input-field"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Sort */}
-                        <div className="mb-6">
-                            <label className="block font-medium mb-2">{t('sort')}</label>
+                        {/* Sort Dropdown */}
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-300">
+                                {t('sort')}:
+                            </label>
                             <select
                                 value={filters.sort}
-                                onChange={(e) => updateFilter('sort', e.target.value)}
-                                className="input-field"
+                                onChange={handleSortChange}
+                                className="input-field !py-2 !text-sm w-48"
                             >
                                 <option value="">{t('sort_newest')}</option>
                                 <option value="price_low">{t('sort_price_low')}</option>
@@ -144,28 +120,40 @@ export default function ProductList() {
                             </select>
                         </div>
                     </div>
-                </aside>
 
-                {/* Books Grid */}
-                <div className="lg:col-span-3">
-                    <div className="mb-6">
-                        <SearchBar
-                            onSearch={(term) => updateFilter('search', term)}
-                            placeholder={t('search_placeholder')}
-                        />
-                    </div>
+                    {loading ? (
+                        <div className="flex justify-center py-12">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-deep-red"></div>
+                        </div>
+                    ) : (
+                        <>
+                            {books.length > 0 ? (
+                                <BookGrid books={books} />
+                            ) : (
+                                <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                    <p className="text-lg text-gray-600 dark:text-gray-400">
+                                        {t('no_results')}
+                                    </p>
+                                    <button
+                                        onClick={clearFilters}
+                                        className="mt-4 text-royal-blue hover:underline"
+                                    >
+                                        {language === 'hi' ? 'सभी फ़िल्टर साफ़ करें' : 'Clear all filters'}
+                                    </button>
+                                </div>
+                            )}
 
-                    <div className="mb-4 text-gray-600 dark:text-gray-400">
-                        {t('showing')} {books.length} {t('results')}
-                    </div>
-
-                    <BookGrid books={books} loading={loading} />
-
-                    <Pagination
-                        currentPage={pagination.page}
-                        totalPages={pagination.totalPages}
-                        onPageChange={handlePageChange}
-                    />
+                            {pagination.totalPages > 1 && (
+                                <div className="mt-12">
+                                    <Pagination
+                                        currentPage={pagination.page}
+                                        totalPages={pagination.totalPages}
+                                        onPageChange={handlePageChange}
+                                    />
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
             </div>
         </div>
