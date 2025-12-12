@@ -1,78 +1,85 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n';
-import { useThemeStore } from '../store/themeStore';
-import { useCartStore } from '../store/cartStore';
 import { useAuthStore } from '../store/authStore';
+import { useCartStore } from '../store/cartStore';
+import { Search, ShoppingCart, User, LogOut, BookOpen } from 'lucide-react';
+import ThemeToggle from './UI/ThemeToggle';
+import LanguageToggle from './UI/LanguageToggle';
 import { useState } from 'react';
 
 export default function Header() {
-    const { t, language, toggleLanguage } = useI18n();
-    const { theme, toggleTheme } = useThemeStore();
-    const cartItemCount = useCartStore(state => state.getItemCount());
+    const { t } = useI18n();
     const { user, role, logout } = useAuthStore();
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const { getItemCount } = useCartStore();
+    const navigate = useNavigate();
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/books?search=${encodeURIComponent(searchQuery)}`);
+        }
+    };
 
     const handleLogout = () => {
         logout();
+        navigate('/');
     };
 
+    const cartCount = getItemCount();
+
     return (
-        <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-md">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16">
+        <header className="bg-white dark:bg-[#1E1E1E] border-b border-[#E5E5E5] dark:border-gray-800 sticky top-0 z-50 shadow-soft">
+            <div className="container mx-auto px-4 py-4">
+                <div className="flex items-center justify-between gap-4">
                     {/* Logo */}
-                    <Link to="/" className="flex items-center space-x-2">
-                        <div className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
-                            📚 {language === 'hi' ? 'पुस्तक भंडार' : 'Book Store'}
+                    <Link
+                        to="/"
+                        className="flex items-center gap-2 text-deep-red hover:text-deep-red-700 transition-colors"
+                    >
+                        <BookOpen className="w-8 h-8" />
+                        <div className="hidden sm:block">
+                            <div className="font-bold text-xl leading-tight">पुस्तक भंडार</div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">Book Store</div>
                         </div>
                     </Link>
 
-                    {/* Desktop Navigation */}
-                    <nav className="hidden md:flex items-center space-x-6">
-                        <Link to="/" className="text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium transition-colors">
-                            {t('home')}
-                        </Link>
-                        <Link to="/books" className="text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium transition-colors">
-                            {t('books')}
-                        </Link>
-                        {role === 'admin' && (
-                            <Link to="/admin/dashboard" className="text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium transition-colors">
-                                {t('dashboard')}
-                            </Link>
-                        )}
-                    </nav>
-
-                    {/* Actions */}
-                    <div className="flex items-center space-x-3">
-                        {/* Language Toggle */}
-                        <button
-                            onClick={toggleLanguage}
-                            className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                            aria-label={t('toggle_language')}
-                        >
-                            {language === 'hi' ? 'English' : 'हिन्दी'}
+                    {/* Search Bar - Desktop */}
+                    <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-2xl">
+                        <div className="relative w-full">
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder={t('search_books')}
+                                className="w-full pl-12 pr-4 py-3 border-2 border-[#E5E5E5] dark:border-gray-700 rounded-lg bg-white dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white focus:outline-none focus:ring-2 focus:ring-royal-blue focus:border-transparent transition-all text-lg"
+                            />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        </div>
+                        <button type="submit" className="ml-2 btn-primary-red">
+                            {t('search')}
                         </button>
+                    </form>
+
+                    {/* Right Section */}
+                    <div className="flex items-center gap-3">
+                        {/* Language Toggle */}
+                        <LanguageToggle />
 
                         {/* Theme Toggle */}
-                        <button
-                            onClick={toggleTheme}
-                            className="p-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                            aria-label={t('toggle_theme')}
-                        >
-                            {theme === 'dark' ? '🌞' : '🌙'}
-                        </button>
+                        <ThemeToggle />
 
                         {/* Cart */}
-                        {role !== 'admin' && (
+                        {role === 'client' && (
                             <Link
                                 to="/cart"
-                                className="relative p-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                                aria-label={t('cart')}
+                                className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                aria-label="Shopping cart"
                             >
-                                🛒
-                                {cartItemCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                                        {cartItemCount}
+                                <ShoppingCart className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+                                {cartCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-deep-red text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                        {cartCount}
                                     </span>
                                 )}
                             </Link>
@@ -80,63 +87,64 @@ export default function Header() {
 
                         {/* User Menu */}
                         {user ? (
-                            <div className="flex items-center space-x-3">
-                                <span className="hidden md:block text-sm text-gray-700 dark:text-gray-200">
-                                    {user.name || user.username}
-                                </span>
+                            <div className="flex items-center gap-2">
+                                <Link
+                                    to={role === 'admin' ? '/admin/dashboard' : '/profile'}
+                                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                >
+                                    <User className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                                    <span className="hidden lg:inline text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        {user.username || user.name}
+                                    </span>
+                                </Link>
                                 <button
                                     onClick={handleLogout}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                    aria-label="Logout"
                                 >
-                                    {t('logout')}
+                                    <LogOut className="w-5 h-5 text-gray-700 dark:text-gray-300" />
                                 </button>
                             </div>
                         ) : (
-                            <div className="flex items-center space-x-2">
-                                <Link
-                                    to="/login"
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                                >
-                                    {t('login')}
-                                </Link>
-                                <Link
-                                    to="/signup"
-                                    className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors"
-                                >
-                                    {t('signup')}
-                                </Link>
-                            </div>
+                            <Link to="/login" className="btn-primary-blue">
+                                {t('login')}
+                            </Link>
                         )}
-
-                        {/* Mobile Menu Button */}
-                        <button
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            className="md:hidden p-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-                            aria-label="Menu"
-                        >
-                            {mobileMenuOpen ? '✕' : '☰'}
-                        </button>
                     </div>
                 </div>
 
-                {/* Mobile Menu */}
-                {mobileMenuOpen && (
-                    <div className="md:hidden py-4 border-t border-gray-200 dark:border-gray-700">
-                        <nav className="flex flex-col space-y-2">
-                            <Link to="/" className="px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" onClick={() => setMobileMenuOpen(false)}>
-                                {t('home')}
-                            </Link>
-                            <Link to="/books" className="px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" onClick={() => setMobileMenuOpen(false)}>
-                                {t('books')}
-                            </Link>
-                            {role === 'admin' && (
-                                <Link to="/admin/dashboard" className="px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" onClick={() => setMobileMenuOpen(false)}>
-                                    {t('dashboard')}
-                                </Link>
-                            )}
-                        </nav>
+                {/* Navigation Links */}
+                <nav className="mt-4 flex flex-wrap items-center gap-6 text-sm font-medium">
+                    <Link to="/" className="text-gray-700 dark:text-gray-300 hover:text-deep-red dark:hover:text-deep-red transition-colors">
+                        {t('home')}
+                    </Link>
+                    <Link to="/books" className="text-gray-700 dark:text-gray-300 hover:text-deep-red dark:hover:text-deep-red transition-colors">
+                        {t('all_books')}
+                    </Link>
+                    <Link to="/books?category=education" className="text-gray-700 dark:text-gray-300 hover:text-deep-red dark:hover:text-deep-red transition-colors">
+                        {t('education')}
+                    </Link>
+                    <Link to="/books?category=spiritual" className="text-gray-700 dark:text-gray-300 hover:text-deep-red dark:hover:text-deep-red transition-colors">
+                        {t('spiritual')}
+                    </Link>
+                    <Link to="/books?category=fiction" className="text-gray-700 dark:text-gray-300 hover:text-deep-red dark:hover:text-deep-red transition-colors">
+                        {t('fiction')}
+                    </Link>
+                </nav>
+
+                {/* Mobile Search */}
+                <form onSubmit={handleSearch} className="md:hidden mt-4">
+                    <div className="relative">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder={t('search_books')}
+                            className="w-full pl-10 pr-4 py-2 border-2 border-[#E5E5E5] dark:border-gray-700 rounded-lg bg-white dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white focus:outline-none focus:ring-2 focus:ring-royal-blue"
+                        />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     </div>
-                )}
+                </form>
             </div>
         </header>
     );

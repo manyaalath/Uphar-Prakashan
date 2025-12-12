@@ -3,8 +3,9 @@ const bcrypt = require('bcryptjs');
 
 class Admin {
     static findByUsername(username) {
-        const stmt = db.prepare('SELECT * FROM admins WHERE username = ?');
-        return stmt.get(username);
+        return db.get('admins')
+            .find({ username })
+            .value();
     }
 
     static async verifyPassword(password, hash) {
@@ -12,8 +13,17 @@ class Admin {
     }
 
     static create(username, passwordHash) {
-        const stmt = db.prepare('INSERT INTO admins (username, password_hash) VALUES (?, ?)');
-        return stmt.run(username, passwordHash);
+        const admins = db.get('admins').value();
+        const newId = admins.length > 0 ? Math.max(...admins.map(a => a.id)) + 1 : 1;
+
+        const newAdmin = {
+            id: newId,
+            username,
+            password_hash: passwordHash
+        };
+
+        db.get('admins').push(newAdmin).write();
+        return newAdmin;
     }
 }
 

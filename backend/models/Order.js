@@ -2,23 +2,33 @@ const { db } = require('../db');
 
 class Order {
     static create(clientId, items, totalAmount) {
-        const stmt = db.prepare(`
-            INSERT INTO orders (client_id, items, total_amount)
-            VALUES (?, ?, ?)
-        `);
+        const orders = db.get('orders').value();
+        const newId = orders.length > 0 ? Math.max(...orders.map(o => o.id)) + 1 : 1;
 
-        const result = stmt.run(clientId, JSON.stringify(items), totalAmount);
-        return result.lastInsertRowid;
+        const newOrder = {
+            id: newId,
+            client_id: clientId,
+            items: items,
+            total_amount: totalAmount,
+            created_at: new Date().toISOString()
+        };
+
+        db.get('orders').push(newOrder).write();
+        return newId;
     }
 
     static findByClientId(clientId) {
-        const stmt = db.prepare('SELECT * FROM orders WHERE client_id = ? ORDER BY created_at DESC');
-        return stmt.all(clientId);
+        return db.get('orders')
+            .filter({ client_id: parseInt(clientId) })
+            .sortBy('created_at')
+            .reverse()
+            .value();
     }
 
     static findById(id) {
-        const stmt = db.prepare('SELECT * FROM orders WHERE id = ?');
-        return stmt.get(id);
+        return db.get('orders')
+            .find({ id: parseInt(id) })
+            .value();
     }
 }
 

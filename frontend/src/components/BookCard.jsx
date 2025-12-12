@@ -1,95 +1,97 @@
 import { Link } from 'react-router-dom';
 import { useI18n } from '../i18n';
 import { useCartStore } from '../store/cartStore';
-import { useState } from 'react';
+import { ShoppingCart } from 'lucide-react';
 
 export default function BookCard({ book }) {
-    const { t, language } = useI18n();
-    const addItem = useCartStore(state => state.addItem);
-    const [showToast, setShowToast] = useState(false);
+    const { language } = useI18n();
+    const { addItem } = useCartStore();
 
     const title = language === 'hi' ? book.title_hi : book.title_en;
-    const description = language === 'hi' ? book.short_hi : book.short_en;
+    const shortDesc = language === 'hi' ? book.short_hi : book.short_en;
 
     const handleAddToCart = (e) => {
         e.preventDefault();
-        addItem(book);
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 2000);
+        addItem(book, 1);
     };
 
-    const isLowStock = book.stock > 0 && book.stock < 10;
-    const isOutOfStock = book.stock === 0;
-
     return (
-        <div className="card group hover:scale-105 transition-transform duration-300">
-            <Link to={`/books/${book.id}`}>
-                {/* Image */}
-                <div className="relative h-64 overflow-hidden bg-gray-200 dark:bg-gray-700">
-                    <img
-                        src={book.cover_url || 'https://via.placeholder.com/400x600?text=Book'}
-                        alt={title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        loading="lazy"
-                    />
-
-                    {/* Stock Badge */}
-                    <div className="absolute top-2 right-2">
-                        {isOutOfStock ? (
-                            <span className="badge badge-danger">{t('out_of_stock')}</span>
-                        ) : isLowStock ? (
-                            <span className="badge badge-warning">{t('low_stock')}</span>
-                        ) : (
-                            <span className="badge badge-success">{t('in_stock')}</span>
-                        )}
+        <Link to={`/book/${book.id}`} className="card group hover:-translate-y-1 transition-all duration-300">
+            {/* Book Cover */}
+            <div className="relative overflow-hidden bg-gray-100 dark:bg-gray-800">
+                <img
+                    src={book.cover_url}
+                    alt={title}
+                    className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                />
+                {/* Stock Badge */}
+                {book.stock < 10 && book.stock > 0 && (
+                    <div className="absolute top-2 right-2 bg-lemon-yellow text-gray-900 px-3 py-1 rounded-full text-xs font-bold">
+                        {language === 'hi' ? `केवल ${book.stock} बचे` : `Only ${book.stock} left`}
                     </div>
-                </div>
+                )}
+                {book.stock === 0 && (
+                    <div className="absolute top-2 right-2 bg-gray-800 text-white px-3 py-1 rounded-full text-xs font-bold">
+                        {language === 'hi' ? 'स्टॉक में नहीं' : 'Out of Stock'}
+                    </div>
+                )}
+            </div>
 
-                {/* Content */}
-                <div className="card-body">
-                    <h3 className={`text-lg font-semibold mb-2 line-clamp-2 ${language === 'hi' ? 'hindi-text' : ''}`}>
-                        {title}
-                    </h3>
+            {/* Book Info */}
+            <div className="p-4">
+                {/* Title */}
+                <h3 className="font-bold text-lg mb-1 text-[#1A1A1A] dark:text-white line-clamp-2 min-h-[3.5rem]">
+                    {title}
+                </h3>
 
-                    {description && (
-                        <p className={`text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2 ${language === 'hi' ? 'hindi-text' : ''}`}>
-                            {description}
-                        </p>
-                    )}
+                {/* Short Description */}
+                {shortDesc && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                        {shortDesc}
+                    </p>
+                )}
 
-                    <div className="flex items-center justify-between mb-4">
-                        <div>
-                            <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                                ₹{book.price}
-                            </p>
-                            {book.ex_tax && (
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    {t('ex_tax')}: ₹{book.ex_tax}
-                                </p>
-                            )}
+                {/* Price and Cart */}
+                <div className="flex items-center justify-between mt-4">
+                    <div>
+                        <div className="text-2xl font-bold text-deep-red">
+                            ₹{book.price}
                         </div>
-
-                        <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">
-                            {t(book.category)}
-                        </span>
+                        {book.ex_tax && book.ex_tax !== book.price && (
+                            <div className="text-xs text-gray-500 line-through">
+                                ₹{book.ex_tax}
+                            </div>
+                        )}
                     </div>
 
                     <button
                         onClick={handleAddToCart}
-                        disabled={isOutOfStock}
-                        className={`w-full btn-primary ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={book.stock === 0}
+                        className={`p-3 rounded-lg transition-all flex items-center justify-center ${book.stock === 0
+                                ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'
+                                : 'bg-deep-red hover:bg-deep-red-700 text-white shadow-soft hover:shadow-soft-lg hover:scale-105'
+                            }`}
+                        aria-label="Add to cart"
                     >
-                        {isOutOfStock ? t('out_of_stock') : t('add_to_cart')}
+                        <ShoppingCart className="w-5 h-5" />
                     </button>
                 </div>
-            </Link>
 
-            {/* Toast Notification */}
-            {showToast && (
-                <div className="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg animate-fade-in z-50">
-                    ✓ {t('added_to_cart')}
-                </div>
-            )}
-        </div>
+                {/* Tags */}
+                {book.tags && book.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-3">
+                        {book.tags.slice(0, 3).map((tag, index) => (
+                            <span
+                                key={index}
+                                className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs rounded"
+                            >
+                                {tag}
+                            </span>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </Link>
     );
 }

@@ -1,41 +1,47 @@
 const bcrypt = require('bcryptjs');
-const { db, initDB, saveDatabase } = require('./db');
+const { db, initDB } = require('./db');
 
 async function seed() {
     // Initialize database first
-    await db.init();
-    await initDB();
+    initDB();
 
     console.log('Starting database seed...');
 
     // Clear existing data
-    db.exec('DELETE FROM orders');
-    db.exec('DELETE FROM books');
-    db.exec('DELETE FROM clients');
-    db.exec('DELETE FROM admins');
+    db.set('orders', []).write();
+    db.set('books', []).write();
+    db.set('clients', []).write();
+    db.set('admins', []).write();
 
     // Seed admin
     const adminPassword = await bcrypt.hash('admin123', 10);
-    db.prepare('INSERT INTO admins (username, password_hash) VALUES (?, ?)').run('admin', adminPassword);
+    db.get('admins').push({
+        id: 1,
+        username: 'admin',
+        password_hash: adminPassword
+    }).write();
     console.log('✓ Admin user created (username: admin, password: admin123)');
 
     // Seed sample clients
     const clientPassword = await bcrypt.hash('password123', 10);
-    db.prepare('INSERT INTO clients (name, email, password_hash) VALUES (?, ?, ?)').run(
-        'राज कुमार',
-        'raj@example.com',
-        clientPassword
-    );
-    db.prepare('INSERT INTO clients (name, email, password_hash) VALUES (?, ?, ?)').run(
-        'Priya Sharma',
-        'priya@example.com',
-        clientPassword
-    );
+    db.get('clients').push({
+        id: 1,
+        name: 'राज कुमार',
+        email: 'raj@example.com',
+        password_hash: clientPassword
+    }).write();
+    db.get('clients').push({
+        id: 2,
+        name: 'Priya Sharma',
+        email: 'priya@example.com',
+        password_hash: clientPassword
+    }).write();
     console.log('✓ Sample clients created');
 
     // Seed books
     const books = [
         {
+            id: 1,
             slug: 'bhagavad-gita',
             title_hi: 'श्रीमद् भगवद् गीता',
             title_en: 'Bhagavad Gita',
@@ -46,12 +52,13 @@ async function seed() {
             price: 299,
             ex_tax: 269,
             category: 'spiritual',
-            tags: JSON.stringify(['spiritual', 'philosophy', 'classic']),
+            tags: ['spiritual', 'philosophy', 'classic'],
             language: 'both',
             stock: 50,
             cover_url: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop'
         },
         {
+            id: 2,
             slug: 'premchand-godan',
             title_hi: 'गोदान - मुंशी प्रेमचंद',
             title_en: 'Godan by Premchand',
@@ -62,12 +69,13 @@ async function seed() {
             price: 199,
             ex_tax: 179,
             category: 'fiction',
-            tags: JSON.stringify(['hindi-literature', 'classic', 'social']),
+            tags: ['hindi-literature', 'classic', 'social'],
             language: 'hindi',
             stock: 35,
             cover_url: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop'
         },
         {
+            id: 3,
             slug: 'ncert-science-class10',
             title_hi: 'एनसीईआरटी विज्ञान कक्षा 10',
             title_en: 'NCERT Science Class 10',
@@ -78,12 +86,13 @@ async function seed() {
             price: 150,
             ex_tax: 135,
             category: 'education',
-            tags: JSON.stringify(['textbook', 'science', 'ncert', 'class10']),
+            tags: ['textbook', 'science', 'ncert', 'class10'],
             language: 'both',
             stock: 100,
             cover_url: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=600&fit=crop'
         },
         {
+            id: 4,
             slug: 'hindi-grammar',
             title_hi: 'हिंदी व्याकरण',
             title_en: 'Hindi Grammar',
@@ -94,12 +103,13 @@ async function seed() {
             price: 250,
             ex_tax: 225,
             category: 'education',
-            tags: JSON.stringify(['grammar', 'hindi', 'reference']),
+            tags: ['grammar', 'hindi', 'reference'],
             language: 'hindi',
             stock: 60,
             cover_url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&h=600&fit=crop'
         },
         {
+            id: 5,
             slug: 'ramayana',
             title_hi: 'रामायण',
             title_en: 'Ramayana',
@@ -110,12 +120,13 @@ async function seed() {
             price: 349,
             ex_tax: 314,
             category: 'spiritual',
-            tags: JSON.stringify(['spiritual', 'epic', 'mythology']),
+            tags: ['spiritual', 'epic', 'mythology'],
             language: 'both',
             stock: 45,
             cover_url: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop'
         },
         {
+            id: 6,
             slug: 'english-speaking-course',
             title_hi: 'अंग्रेजी बोलना सीखें',
             title_en: 'Learn English Speaking',
@@ -126,12 +137,13 @@ async function seed() {
             price: 180,
             ex_tax: 162,
             category: 'education',
-            tags: JSON.stringify(['english', 'language', 'self-help']),
+            tags: ['english', 'language', 'self-help'],
             language: 'both',
             stock: 70,
             cover_url: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=600&fit=crop'
         },
         {
+            id: 7,
             slug: 'kabir-dohe',
             title_hi: 'कबीर के दोहे',
             title_en: 'Kabir\'s Dohas',
@@ -142,12 +154,13 @@ async function seed() {
             price: 120,
             ex_tax: 108,
             category: 'spiritual',
-            tags: JSON.stringify(['poetry', 'spiritual', 'hindi']),
+            tags: ['poetry', 'spiritual', 'hindi'],
             language: 'hindi',
             stock: 40,
             cover_url: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=400&h=600&fit=crop'
         },
         {
+            id: 8,
             slug: 'general-knowledge-2024',
             title_hi: 'सामान्य ज्ञान 2024',
             title_en: 'General Knowledge 2024',
@@ -158,12 +171,13 @@ async function seed() {
             price: 280,
             ex_tax: 252,
             category: 'education',
-            tags: JSON.stringify(['competitive', 'gk', 'exams']),
+            tags: ['competitive', 'gk', 'exams'],
             language: 'both',
             stock: 80,
             cover_url: 'https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=400&h=600&fit=crop'
         },
         {
+            id: 9,
             slug: 'panchatantra',
             title_hi: 'पंचतंत्र की कहानियां',
             title_en: 'Panchatantra Stories',
@@ -174,12 +188,13 @@ async function seed() {
             price: 160,
             ex_tax: 144,
             category: 'children',
-            tags: JSON.stringify(['children', 'stories', 'moral']),
+            tags: ['children', 'stories', 'moral'],
             language: 'both',
             stock: 55,
             cover_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop'
         },
         {
+            id: 10,
             slug: 'indian-history',
             title_hi: 'भारत का इतिहास',
             title_en: 'History of India',
@@ -190,12 +205,13 @@ async function seed() {
             price: 320,
             ex_tax: 288,
             category: 'education',
-            tags: JSON.stringify(['history', 'india', 'reference']),
+            tags: ['history', 'india', 'reference'],
             language: 'both',
             stock: 42,
             cover_url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400&h=600&fit=crop'
         },
         {
+            id: 11,
             slug: 'yoga-pradipika',
             title_hi: 'योग प्रदीपिका',
             title_en: 'Yoga Pradipika',
@@ -206,12 +222,13 @@ async function seed() {
             price: 240,
             ex_tax: 216,
             category: 'health',
-            tags: JSON.stringify(['yoga', 'health', 'wellness']),
+            tags: ['yoga', 'health', 'wellness'],
             language: 'both',
             stock: 38,
             cover_url: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop'
         },
         {
+            id: 12,
             slug: 'mathematics-class12',
             title_hi: 'गणित कक्षा 12',
             title_en: 'Mathematics Class 12',
@@ -222,12 +239,13 @@ async function seed() {
             price: 175,
             ex_tax: 158,
             category: 'education',
-            tags: JSON.stringify(['textbook', 'mathematics', 'ncert', 'class12']),
+            tags: ['textbook', 'mathematics', 'ncert', 'class12'],
             language: 'both',
             stock: 90,
             cover_url: 'https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?w=400&h=600&fit=crop'
         },
         {
+            id: 13,
             slug: 'ayurveda-basics',
             title_hi: 'आयुर्वेद के मूल सिद्धांत',
             title_en: 'Basics of Ayurveda',
@@ -238,12 +256,13 @@ async function seed() {
             price: 210,
             ex_tax: 189,
             category: 'health',
-            tags: JSON.stringify(['ayurveda', 'health', 'traditional']),
+            tags: ['ayurveda', 'health', 'traditional'],
             language: 'both',
             stock: 33,
             cover_url: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&h=600&fit=crop'
         },
         {
+            id: 14,
             slug: 'hindi-kahaniyan',
             title_hi: 'हिंदी कहानियां',
             title_en: 'Hindi Short Stories',
@@ -254,12 +273,13 @@ async function seed() {
             price: 185,
             ex_tax: 167,
             category: 'fiction',
-            tags: JSON.stringify(['stories', 'hindi', 'classic']),
+            tags: ['stories', 'hindi', 'classic'],
             language: 'hindi',
             stock: 48,
             cover_url: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400&h=600&fit=crop'
         },
         {
+            id: 15,
             slug: 'chanakya-neeti',
             title_hi: 'चाणक्य नीति',
             title_en: 'Chanakya Neeti',
@@ -270,33 +290,18 @@ async function seed() {
             price: 145,
             ex_tax: 131,
             category: 'self-help',
-            tags: JSON.stringify(['wisdom', 'philosophy', 'self-help']),
+            tags: ['wisdom', 'philosophy', 'self-help'],
             language: 'both',
             stock: 62,
             cover_url: 'https://images.unsplash.com/photo-1519682337058-a94d519337bc?w=400&h=600&fit=crop'
         }
     ];
 
-    const insertBook = db.prepare(`
-        INSERT INTO books (
-            slug, title_hi, title_en, short_hi, short_en, description_hi, description_en,
-            price, ex_tax, category, tags, language, stock, cover_url
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    for (const book of books) {
-        insertBook.run(
-            book.slug, book.title_hi, book.title_en, book.short_hi, book.short_en,
-            book.description_hi, book.description_en, book.price, book.ex_tax,
-            book.category, book.tags, book.language, book.stock, book.cover_url
-        );
-    }
+    books.forEach(book => {
+        db.get('books').push(book).write();
+    });
 
     console.log(`✓ ${books.length} sample books created`);
-
-    // Save database to disk
-    saveDatabase();
-
     console.log('\n✅ Database seeding completed successfully!');
     console.log('\nDefault credentials:');
     console.log('  Admin: username = admin, password = admin123');

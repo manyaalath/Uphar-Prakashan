@@ -3,13 +3,15 @@ const bcrypt = require('bcryptjs');
 
 class Client {
     static findByEmail(email) {
-        const stmt = db.prepare('SELECT * FROM clients WHERE email = ?');
-        return stmt.get(email);
+        return db.get('clients')
+            .find({ email })
+            .value();
     }
 
     static findById(id) {
-        const stmt = db.prepare('SELECT * FROM clients WHERE id = ?');
-        return stmt.get(id);
+        return db.get('clients')
+            .find({ id })
+            .value();
     }
 
     static async create(name, email, password) {
@@ -19,9 +21,18 @@ class Client {
         }
 
         const passwordHash = await bcrypt.hash(password, 10);
-        const stmt = db.prepare('INSERT INTO clients (name, email, password_hash) VALUES (?, ?, ?)');
-        const result = stmt.run(name, email, passwordHash);
-        return result.lastInsertRowid;
+        const clients = db.get('clients').value();
+        const newId = clients.length > 0 ? Math.max(...clients.map(c => c.id)) + 1 : 1;
+
+        const newClient = {
+            id: newId,
+            name,
+            email,
+            password_hash: passwordHash
+        };
+
+        db.get('clients').push(newClient).write();
+        return newId;
     }
 
     static async verifyPassword(password, hash) {

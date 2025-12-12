@@ -21,14 +21,8 @@ function getAllBooks(req, res) {
         const books = Book.getAll(filters);
         const total = Book.count(filters);
 
-        // Parse tags JSON for each book
-        const booksWithParsedTags = books.map(book => ({
-            ...book,
-            tags: book.tags ? JSON.parse(book.tags) : []
-        }));
-
         res.json({
-            books: booksWithParsedTags,
+            books,
             pagination: {
                 total,
                 page: parseInt(page),
@@ -51,13 +45,7 @@ function getBookById(req, res) {
             return res.status(404).json({ error: 'Book not found' });
         }
 
-        // Parse tags JSON
-        const bookWithParsedTags = {
-            ...book,
-            tags: book.tags ? JSON.parse(book.tags) : []
-        };
-
-        res.json({ book: bookWithParsedTags });
+        res.json({ book });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

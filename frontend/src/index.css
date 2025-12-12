@@ -1,72 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
-    @apply bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200;
+    @apply bg-white dark:bg-[#121212] text-[#1A1A1A] dark:text-white transition-colors duration-200;
   }
 }
 
 @layer components {
-  /* Button styles */
-  .btn-primary {
-    @apply px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900;
+  /* Button styles - Client */
+  .btn-primary-red {
+    @apply px-6 py-3 bg-deep-red hover:bg-deep-red-700 text-white rounded-lg font-medium transition-all duration-200 shadow-soft hover:shadow-soft-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-deep-red focus:ring-offset-2 min-h-[44px] text-base;
+  }
+  
+  .btn-primary-blue {
+    @apply px-6 py-3 bg-royal-blue hover:bg-royal-blue-700 text-white rounded-lg font-medium transition-all duration-200 shadow-soft hover:shadow-soft-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-royal-blue focus:ring-offset-2 min-h-[44px] text-base;
   }
   
   .btn-secondary {
-    @apply px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 rounded-lg font-medium transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900;
+    @apply px-6 py-3 bg-white dark:bg-[#1E1E1E] border-2 border-[#E5E5E5] dark:border-gray-700 hover:border-royal-blue dark:hover:border-royal-blue text-[#1A1A1A] dark:text-white rounded-lg font-medium transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-royal-blue focus:ring-offset-2 min-h-[44px] text-base;
   }
   
-  .btn-danger {
-    @apply px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900;
+  /* Admin buttons - Grayscale */
+  .btn-admin-primary {
+    @apply px-4 py-2 bg-royal-blue hover:bg-royal-blue-700 text-white rounded font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-royal-blue focus:ring-offset-2;
+  }
+  
+  .btn-admin-secondary {
+    @apply px-4 py-2 bg-admin-gray-200 dark:bg-admin-gray-700 hover:bg-admin-gray-300 dark:hover:bg-admin-gray-600 text-admin-gray-800 dark:text-admin-gray-100 rounded font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-admin-gray-400 focus:ring-offset-2;
+  }
+  
+  .btn-admin-outline-blue {
+    @apply px-4 py-2 border-2 border-royal-blue text-royal-blue hover:bg-royal-blue hover:text-white rounded font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-royal-blue focus:ring-offset-2;
+  }
+  
+  .btn-admin-outline-red {
+    @apply px-4 py-2 border-2 border-deep-red text-deep-red hover:bg-deep-red hover:text-white rounded font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-deep-red focus:ring-offset-2;
   }
   
   /* Input styles */
   .input-field {
-    @apply w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-lg;
+    @apply w-full px-4 py-3 border border-[#E5E5E5] dark:border-gray-700 rounded-lg bg-white dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white focus:outline-none focus:ring-2 focus:ring-royal-blue focus:border-transparent transition-all text-lg min-h-[48px];
+  }
+  
+  .input-field-admin {
+    @apply w-full px-3 py-2 border border-admin-gray-300 dark:border-admin-gray-600 rounded bg-white dark:bg-admin-gray-800 text-admin-gray-900 dark:text-admin-gray-100 focus:outline-none focus:ring-2 focus:ring-admin-gray-400 focus:border-transparent transition-all;
   }
   
   /* Card styles */
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden;
+    @apply bg-white dark:bg-[#1E1E1E] rounded-lg shadow-soft hover:shadow-soft-lg transition-all duration-300 overflow-hidden border border-[#E5E5E5] dark:border-gray-800;
   }
   
-  .card-header {
-    @apply px-6 py-4 border-b border-gray-200 dark:border-gray-700;
-  }
-  
-  .card-body {
-    @apply px-6 py-4;
+  .card-admin {
+    @apply bg-white dark:bg-admin-gray-800 rounded shadow-sm border border-admin-gray-200 dark:border-admin-gray-700 overflow-hidden;
   }
   
   /* Link styles */
   .link {
-    @apply text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 underline decoration-2 underline-offset-4 transition-colors;
+    @apply text-royal-blue hover:text-royal-blue-700 underline decoration-2 underline-offset-4 transition-colors;
   }
   
-  /* Badge */
-  .badge {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  .link-admin {
+    @apply text-royal-blue hover:text-royal-blue-700 transition-colors;
   }
   
-  .badge-success {
-    @apply bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100;
-  }
-  
-  .badge-warning {
-    @apply bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100;
-  }
-  
-  .badge-danger {
-    @apply bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100;
+  /* Category icon background */
+  .category-icon-bg {
+    @apply w-16 h-16 rounded-full bg-lemon-yellow flex items-center justify-center text-2xl;
   }
 }
 
 @layer utilities {
-  /* Scroll behavior */
+  /* Smooth scroll */
   .smooth-scroll {
     scroll-behavior: smooth;
+  }
+  
+  /* Gradient backgrounds */
+  .gradient-red-blue {
+    background: linear-gradient(135deg, #D62323 0%, #2B6CB0 100%);
   }
   
   /* Animation utilities */
@@ -100,7 +116,7 @@
   
   /* Focus visible for accessibility */
   .focus-visible-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal-blue focus-visible:ring-offset-2;
   }
 }
 
@@ -126,4 +142,10 @@
 .hindi-text {
   font-family: 'Noto Sans Devanagari', system-ui, sans-serif;
   letter-spacing: 0.01em;
+}
+
+/* Large tap targets for accessibility */
+button, a {
+  min-height: 44px;
+  min-width: 44px;
 }
